@@ -1,6 +1,6 @@
-import { AbstractParseTreeVisitor } from "antlr4ts/tree";
+import { AbstractParseTreeVisitor, ParseTreeVisitor } from "antlr4ts/tree";
 import { NumberContext, OpContext, OperationContext } from "./generated/lib/MyLanguageParser";
-import { MyLanguageVisitor } from "./generated/lib/MyLanguageVisitor";
+import { MyLanguageVisitor as MyLanguageVisitorOriginal } from "./generated/lib/MyLanguageVisitor";
 
 type Op = '+' | '-';
 
@@ -8,6 +8,14 @@ interface Operation {
   operator: Op;
   numbers: number[];
 }
+
+// These types are required in order to monkey patch the return type because of antlr4ts generation issue
+type Modify<T, R> = Omit<T, keyof R> & R;
+type MyLanguageVisitor<Result> = Modify<MyLanguageVisitorOriginal<Result>, {
+  visitOperation?: (ctx: OperationContext) => Result; // Top level is ok to return `Result`
+  visitNumber?: (ctx: NumberContext) => unknown; // All others should return unknown because it will be a sub-component of `Result`
+  visitOp?: (ctx: OpContext) => unknown;
+}>;
 
 export class MyLangVisitor extends AbstractParseTreeVisitor<Operation> implements MyLanguageVisitor<Operation> {
   defaultResult(): Operation {

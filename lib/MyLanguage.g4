@@ -1,6 +1,6 @@
 grammar MyLanguage;
 
-operation: left = number op right = number;
+operation: left = number op right = number EOF;
 
 number: val = INTEGER | val = DECIMAL;
 
